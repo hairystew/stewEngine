@@ -146,7 +146,7 @@ void Application::loadGameObjects()
 
 
 	
-	std::shared_ptr<Model> roomModel = Model::createModelFromFile(device, "viking_room.obj");
+	std::shared_ptr<Model> roomModel = Model::createModelFromFile(device, "../source/viking_room.obj");
 	auto room = GameObject::createGameObject();
 	room.model = roomModel;
 	room.transformMatrix = glm::translate(glm::mat4{ 1.0 }, glm::vec3(-2, 0, 0)) * glm::scale(glm::mat4{ 1.0 }, glm::vec3(1., 1., 1.));
@@ -210,7 +210,7 @@ void Application::loadGameObjects()
 void Application::createTextureImage()
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("textures/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load("../source/textures/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	
 	if (!pixels) {
@@ -305,8 +305,8 @@ void Application::createPipeline() {
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	pipeline = std::make_unique<Pipeline>(
 		device,
-		"Shaders/vert.spv",
-		"Shaders/frag.spv",
+		"../source/Shaders/vert.spv",
+		"../source/Shaders/frag.spv",
 		pipelineConfig);
 }
 
