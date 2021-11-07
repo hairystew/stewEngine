@@ -12,6 +12,8 @@
 #include <vector>
 #include <chrono>
 
+#define MOVEMENT_SPEED .0005f
+#define MOUSE_SENSITIVITY 0.001f
 
 class Application
 {
@@ -30,6 +32,7 @@ public:
 		alignas(16) glm::mat4 proj;
 		float time;
 	};
+
 
 
 	Application();
@@ -53,7 +56,48 @@ private:
 		VkPipelineLayout pipelineLayout;
 	};
 
+	struct Camera {
+		float pitch = 0.f;
+		float yaw = 0.f;
+		glm::vec3 forward{ 1., 0., 0. };
+		glm::vec3 up{ 0., 0., 1. };
+		glm::vec3 position{0., 0., 0. };
+		glm::quat orientation{};
+		glm::mat4 lookMat{};
+		glm::vec2 mousePos{};
 
+		void update(float deltaTime) {
+			float delPitch = (Window::inputs.mouseY - mousePos.y) * MOUSE_SENSITIVITY;
+			float delYaw = (Window::inputs.mouseX - mousePos.x) * MOUSE_SENSITIVITY;
+			pitch += delPitch;
+			yaw += delYaw;
+
+			glm::vec3 noVert = glm::normalize(glm::vec3(forward.x, forward.y, 0.f));
+			if ((forward.z < -.99f && pitch < 0) || (forward.z > .99f && pitch > 0))
+				pitch = 0.0f;
+
+			forward = glm::angleAxis(-delPitch, glm::cross(noVert, up)) * forward;
+			forward = glm::angleAxis(-delYaw, up) * forward;
+			//std::cout  << "      m_forward: " << m_forward.x << ", " << m_forward.y << ", " << m_forward.z << std::endl;
+			//move camera position in direction of forward vector
+			
+			glm::vec3 vForward = glm::normalize(glm::vec3(forward.x, forward.y, 0.f)) * deltaTime * MOVEMENT_SPEED;
+			if (Window::inputs.isForward)
+				position += vForward;
+			if(Window::inputs.isBack)
+				position -= vForward;
+			if(Window::inputs.isLeft)
+				position -= glm::cross(vForward, up);
+			if(Window::inputs.isRight)
+				position += glm::cross(vForward, up);
+			if (Window::inputs.isUp)
+				position += up * deltaTime * MOVEMENT_SPEED;
+			if (Window::inputs.isDown)
+				position -= up * deltaTime * MOVEMENT_SPEED;
+			mousePos = glm::vec2(Window::inputs.mouseX, Window::inputs.mouseY);
+			lookMat = (glm::lookAt(position, position + forward, up));
+		}
+	}camera;
 
 	void loadGameObjects();//this shouldn't be in this class
 	void createTextureImage();
@@ -82,7 +126,8 @@ private:
 	//Material* getMaterial(const std::string& name);
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
-	float timestep;
+	float timeStep;
+	float time;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	UniformBufferObject cam;

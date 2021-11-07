@@ -51,7 +51,7 @@ Application::~Application() {
 
 	vkDestroyInstance(instance, nullptr);
 
-	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
+	//vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 
 	vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
 
@@ -74,23 +74,27 @@ Application::~Application() {
 
 void Application::run() {
 
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	
+	time = glfwGetTime();
 
 	while (!window.shouldClose()) {
 		glfwPollEvents();
+		window.update();
 		updateGameObjects();
-		auto newTime = std::chrono::high_resolution_clock::now();
-		timestep = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+		float newTime = glfwGetTime();
+		timeStep = newTime - time;
+		newTime = time;
 		drawFrame();
+		//std::cout << "Player Position: " << camera.position.x << " " << camera.position.y << " " << camera.position.z << " "
+		std::cout << "Player Looking: " << camera.forward.x << " " << camera.forward.y << " " << camera.forward.z << std::endl;
+		//std::cout << "MOUSE DELS: " << camera.pitch << " " << camera.yaw << std::endl;
+
 	}
 
 	vkDeviceWaitIdle(device.device());
 
 }
+
+
 
 void Application::loadGameObjects()
 {
@@ -678,10 +682,7 @@ void Application::drawFrame() {
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage) {
-	static auto startTime = std::chrono::high_resolution_clock::now();
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+	camera.update(timeStep);
 	/*
 	//camera view
 	//glm::vec3 camPos = { 1.f * glm::sin(.2f * time),1.f,1.f * glm::cos(.2f * time) };
@@ -707,8 +708,9 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	//float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.model = glm::rotate(glm::mat4(1.0f), 0 * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = camera.lookMat;
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapchain->getSwapChainExtent().width / (float)swapchain->getSwapChainExtent().height, 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1;
 
