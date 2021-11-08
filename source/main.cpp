@@ -2,7 +2,6 @@
 
 #include "application.h"
 
-
 #include <cstdlib>
 #include <stdexcept>
 #include <iostream>
@@ -23,6 +22,13 @@ int main() {
 
     // Set the new state for the flag
     _CrtSetDbgFlag(tmpFlag);
+
+
+
+
+
+
+
 
     Application app{};
 

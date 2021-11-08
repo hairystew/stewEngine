@@ -39,8 +39,8 @@ public:
 
 	struct Vertex {
 		glm::vec3 position;
-		glm::vec3 color;
 		glm::vec2 texCoord;
+		glm::vec3 color;
 		glm::vec3 normal;
 		//static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 		//static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
@@ -85,6 +85,7 @@ public:
 		std::vector<uint32_t> indices{};
 
 		void loadModel(const std::string& filepath);
+		void buildModel(std::vector<Vertex>& vertices);
 	};
 
 	
@@ -121,7 +122,7 @@ public:
 
 private:
 	void createVertexBuffers(const std::vector<Vertex>& verticies);
-	void createIndexBuffer(const std::vector<uint32_t> indices);
+	void createIndexBuffer(const std::vector<uint32_t>& indices);
 	Device &device;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;

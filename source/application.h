@@ -7,20 +7,22 @@
 #include "swapchain.h"
 #include "window.h"
 #include "gameobject.h"
+#include "chunk.h"
 
+#include <math.h>
 #include <memory>
 #include <vector>
 #include <chrono>
 
-#define MOVEMENT_SPEED .0005f
+#define MOVEMENT_SPEED 50.0f
 #define MOUSE_SENSITIVITY 0.001f
 
 class Application
 {
 
 public:
-	static constexpr int WIDTH = 800;
-	static constexpr int HEIGHT = 800;
+	static constexpr int WIDTH = 1920;
+	static constexpr int HEIGHT = 1080;
 
 
 
@@ -147,7 +149,7 @@ private:
 
 
 
-	std::vector<GameObject> gameObjects;
+	std::vector<std::unique_ptr<GameObject>> gameObjects;
 	std::unordered_map<std::string, Model> models;
 
 

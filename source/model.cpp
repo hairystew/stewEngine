@@ -160,7 +160,7 @@ void Model::createVertexBuffers(const std::vector<Vertex>& vertices)
 
 }
 
-void Model::createIndexBuffer(const std::vector<uint32_t> indices)
+void Model::createIndexBuffer(const std::vector<uint32_t>& indices)
 {
 
 	indicesCount = static_cast<uint32_t>(indices.size());
@@ -311,4 +311,21 @@ void Model::Builder::loadModel(const std::string& filepath)
 			indices.push_back(uniqueVertices[vertex]);
 		}
 	}
+}
+
+void Model::Builder::buildModel(std::vector<Vertex>& inVertices)
+{
+	vertices.clear();
+	indices.clear();
+	std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+	int iter = 0;
+	for (const auto& vertex : inVertices) {
+
+		if (uniqueVertices.count(vertex) == 0) {
+			uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+			vertices.push_back(vertex);
+		}
+		indices.push_back(uniqueVertices[vertex]);
+	}
+
 }

@@ -18,8 +18,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+
 
 
 
@@ -82,11 +81,12 @@ void Application::run() {
 		updateGameObjects();
 		float newTime = glfwGetTime();
 		timeStep = newTime - time;
-		newTime = time;
+		time = newTime;
 		drawFrame();
 		//std::cout << "Player Position: " << camera.position.x << " " << camera.position.y << " " << camera.position.z << " "
-		std::cout << "Player Looking: " << camera.forward.x << " " << camera.forward.y << " " << camera.forward.z << std::endl;
+		//std::cout << "Player Looking: " << camera.forward.x << " " << camera.forward.y << " " << camera.forward.z << std::endl;
 		//std::cout << "MOUSE DELS: " << camera.pitch << " " << camera.yaw << std::endl;
+		//std::cout << 1 / timeStep << std::endl;
 
 	}
 
@@ -135,26 +135,29 @@ void Application::loadGameObjects()
 	////gameObjects.push_back(std::move(triangle));
 	//gameObjects.push_back(std::move(monk));
 
-	std::vector<Model::Vertex> vertices = {
-	{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-	{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-	};
+	//std::vector<Model::Vertex> vertices = {
+	//{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	//{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	//{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	//{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+	//};
 
 
-	std::vector<uint16_t> indices = {
-	0, 1, 2, 2, 3, 0
-	};
+	//std::vector<uint16_t> indices = {
+	//0, 1, 2, 2, 3, 0
+	//};
 
 
-
+		//Chunk chunk;
+		//chunk.createModel(device);
+		//gameObjects.push_back(std::move(chunk));
 	
-	std::shared_ptr<Model> roomModel = Model::createModelFromFile(device, "../source/viking_room.obj");
-	auto room = GameObject::createGameObject();
-	room.model = roomModel;
-	room.transformMatrix = glm::translate(glm::mat4{ 1.0 }, glm::vec3(-2, 0, 0)) * glm::scale(glm::mat4{ 1.0 }, glm::vec3(1., 1., 1.));
-	gameObjects.push_back(std::move(room));
+	//std::shared_ptr<Model> roomModel = Model::createModelFromFile(device, "../source/shrek.obj");
+	//std::shared_ptr<Model> roomModel = Model::createModelFromFile(device, "../source/viking_room.obj");
+	//auto room = GameObject::create();
+	//room.model = roomModel;
+	//room.transformMatrix = glm::translate(glm::mat4{ 1.0 }, glm::vec3(-2, 0, 0)) * glm::scale(glm::mat4{ 1.0 }, glm::vec3(1., 1., 1.));
+	//gameObjects.push_back(std::move(room));
 
 
 	/*
@@ -214,7 +217,8 @@ void Application::loadGameObjects()
 void Application::createTextureImage()
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("../source/textures/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load("../source/textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	//stbi_uc* pixels = stbi_load("../source/textures/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	
 	if (!pixels) {
@@ -247,6 +251,37 @@ void Application::createTextureImage()
 
 void Application::updateGameObjects()
 {
+	glm::vec3 centerChunk = glm::vec3(std::floor(camera.position.x / (float)CHUNK_SIZE),
+							std::floor(camera.position.y / (float)CHUNK_SIZE),
+							0);
+	
+
+	//std::cout << camera.position.x << " " << camera.position.y << " " << camera.position.z << std::endl;
+	bool isChunkLoaded = false;
+	for(int i = 0; i < gameObjects.size();) {
+		if (gameObjects.size() > 0 && gameObjects[i]->gameType == GameChunk){
+		std::cout << gameObjects[i]->pos.x << " " << camera.position.x << " " << (gameObjects[i]->pos.x + (float)CHUNK_SIZE) << "\n";
+			if ((gameObjects[i]->pos.x < camera.position.x) && (camera.position.x < (gameObjects[i]->pos.x + (float)CHUNK_SIZE))
+				&& (gameObjects[i]->pos.y < camera.position.y) && (camera.position.y < (gameObjects[i]->pos.y + (float)CHUNK_SIZE))) {
+				isChunkLoaded = true;
+				i++;
+			}
+			else {
+				gameObjects.erase(gameObjects.begin() + i);
+			}
+
+		}
+	}
+
+	if (!isChunkLoaded) {
+		std::cout << "LOADED CHUNK\n";
+		std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
+		chunk->chunkLoc = centerChunk;
+		chunk->createModel(device);
+		gameObjects.push_back(std::move(chunk));
+	}
+
+
 }
 
 void Application::createPipelineLayout()
@@ -618,7 +653,7 @@ void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 		SimplePushConstantData push{};
 
 		//model rotation
-		glm::mat4 model = obj.transformMatrix;
+		glm::mat4 model = obj->transformMatrix;
 		//calculate final mesh matrix
 		glm::mat4 mesh_matrix = model;
 
@@ -633,8 +668,8 @@ void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 			0,
 			sizeof(SimplePushConstantData),
 			&push);
-		obj.model->bind(commandBuffer);
-		obj.model->draw(commandBuffer);
+		obj->model->bind(commandBuffer);
+		obj->model->draw(commandBuffer);
 	}
 }
 
@@ -708,10 +743,11 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	//float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), 0 * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//ubo.model = glm::rotate(glm::mat4(1.0f), 0 * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.model = glm::mat4(1.f);
 	//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.view = camera.lookMat;
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapchain->getSwapChainExtent().width / (float)swapchain->getSwapChainExtent().height, 0.1f, 10.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapchain->getSwapChainExtent().width / (float)swapchain->getSwapChainExtent().height, 0.1f, 10000.0f);
 	ubo.proj[1][1] *= -1;
 
 	void* data;
