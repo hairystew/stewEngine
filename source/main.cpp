@@ -24,12 +24,6 @@ int main() {
     _CrtSetDbgFlag(tmpFlag);
 
 
-
-
-
-
-
-
     Application app{};
 
 

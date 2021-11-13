@@ -8,7 +8,7 @@
 #include "glm/glm.hpp"
 
 #define CHUNK_SIZE 32
-#define RENDER_SIZE 32
+#define RENDER_SIZE 4
 
 class Chunk : public  GameObject
 {
@@ -18,7 +18,7 @@ public:
 		gameType = GameChunk;
 	}
 	~Chunk() {
-		vertices.clear();
+		//vertices.clear();
 	}
 	//std::unique_ptr<World> world = nullptr;
 	std::string path;
@@ -32,6 +32,7 @@ public:
 	Chunk(Chunk&&) = default;
 	Chunk& operator=(Chunk&&) = default;
 	Model::Builder chunkModelData;
+	std::size_t hash;
 private:
 	void loadChunkData(std::ifstream& file);
 	void writeChunkData();

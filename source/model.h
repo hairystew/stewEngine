@@ -91,8 +91,7 @@ public:
 	
 
 
-
-	Model(Device& device, const Model::Builder& builder);
+	Model(Device& device, Model::Builder& builder);
 	~Model();
 
 	Model(const Model&) = delete;

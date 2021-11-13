@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <numeric>
+#include <algorithm>
 
 #define MOVEMENT_SPEED 50.0f
 #define MOUSE_SENSITIVITY 0.001f
@@ -149,7 +151,8 @@ private:
 
 
 
-	std::vector<std::unique_ptr<GameObject>> gameObjects;
+	std::vector<GameObject> gameObjects;
+	std::vector<std::unique_ptr<Chunk>> gameChunks;
 	std::unordered_map<std::string, Model> models;
 
 

@@ -1,7 +1,9 @@
 #include "chunk.h"
 
 void Chunk::createModel(Device& device)
-{	
+{
+	std::hash<std::string> hashFunc;
+	hash = hashFunc(std::to_string(chunkLoc.x) + std::to_string(chunkLoc.y) + std::to_string(chunkLoc.z));
 	pos = (glm::vec3)chunkLoc * (float)CHUNK_SIZE;
 	//path = "/worlds/" + world->fileName + "/" + (char)pos.x + "x" + (char)pos.y + "y" + (char)pos.z + "z.chunk";
 	path = "../worlds/newWorld/chunks/" + std::to_string(chunkLoc.x) + "x" + std::to_string(chunkLoc.y) + "y" + std::to_string(chunkLoc.z) + "z.chunk";
@@ -17,6 +19,7 @@ void Chunk::createModel(Device& device)
 	createMesh();
 	chunkModelData.buildModel(vertices);
 	model = std::make_unique<Model>(device, chunkModelData);
+
 	transformMatrix = glm::translate(glm::mat4{ 1.0 }, glm::vec3(chunkLoc.x, chunkLoc.y, chunkLoc.z)) * glm::scale(glm::mat4{ CHUNK_SIZE }, glm::vec3(1., 1., 1.));
 }
 
@@ -71,6 +74,7 @@ void Chunk::createMesh()
 	//take 3D array of block IDs
 
 	//loop through array and add face vertices and tex coords to buffer if next to air
+	vertices.clear();
 	for (int i = 0; i < CHUNK_SIZE; i++)
 	{
 		for (int j = 0; j < CHUNK_SIZE; j++)

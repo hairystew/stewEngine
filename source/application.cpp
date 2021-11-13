@@ -50,7 +50,7 @@ Application::~Application() {
 
 	vkDestroyInstance(instance, nullptr);
 
-	//vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 
 	vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
 
@@ -256,30 +256,59 @@ void Application::updateGameObjects()
 							0);
 	
 
-	//std::cout << camera.position.x << " " << camera.position.y << " " << camera.position.z << std::endl;
-	bool isChunkLoaded = false;
-	for(int i = 0; i < gameObjects.size();) {
-		if (gameObjects.size() > 0 && gameObjects[i]->gameType == GameChunk){
-		std::cout << gameObjects[i]->pos.x << " " << camera.position.x << " " << (gameObjects[i]->pos.x + (float)CHUNK_SIZE) << "\n";
-			if ((gameObjects[i]->pos.x < camera.position.x) && (camera.position.x < (gameObjects[i]->pos.x + (float)CHUNK_SIZE))
-				&& (gameObjects[i]->pos.y < camera.position.y) && (camera.position.y < (gameObjects[i]->pos.y + (float)CHUNK_SIZE))) {
-				isChunkLoaded = true;
-				i++;
-			}
-			else {
-				gameObjects.erase(gameObjects.begin() + i);
-			}
 
+	//these are the chunks that we want to load
+	std::vector<glm::ivec3> desiredChunks;
+	for (int i = centerChunk.x - (RENDER_SIZE / 4); i < centerChunk.x + (RENDER_SIZE / 4); i++) {
+		for (int j = centerChunk.y - (RENDER_SIZE / 4); j < centerChunk.y + (RENDER_SIZE / 4); j++) {
+			desiredChunks.push_back(glm::ivec3(i, j, 0));
 		}
 	}
+	
+	std::sort(desiredChunks.begin(), desiredChunks.end(), [](glm::ivec3& a, glm::ivec3& b) {
+		std::hash<std::string> has;
+		return has(std::to_string(a.x) + std::to_string(a.y) + std::to_string(a.z))
+			< has(std::to_string(b.x) + std::to_string(b.y) + std::to_string(b.z));
+		});
 
-	if (!isChunkLoaded) {
-		std::cout << "LOADED CHUNK\n";
-		std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
-		chunk->chunkLoc = centerChunk;
-		chunk->createModel(device);
-		gameObjects.push_back(std::move(chunk));
+
+
+	auto hashFunc = [](glm::ivec3 desChunks) {
+
+		std::hash<std::string> hasher;
+		return hasher(std::to_string(desChunks.x) + std::to_string(desChunks.y) + std::to_string(desChunks.z));
+
+	};
+	volatile std::size_t hashVal;
+	volatile std::size_t desHash;
+	for (int k = 0; k < desiredChunks.size(); k++) {
+
+		while (((int)gameChunks.size() - 1) < k || hashFunc(desiredChunks[k]) != gameChunks[k]->hash) {
+			if (((int)gameChunks.size() - 1) < k || hashFunc(desiredChunks[k]) < gameChunks[k]->hash) {
+				desHash = hashFunc(desiredChunks[k]);
+				std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
+				chunk->chunkLoc = desiredChunks[k];
+				chunk->createModel(device);
+				std::size_t hashVal = chunk->hash;
+				auto it = std::upper_bound(gameChunks.cbegin(), gameChunks.cend(), hashVal, [](std::size_t value, const std::unique_ptr<Chunk>& chnk) {
+					return value < chnk->hash;
+				});
+				gameChunks.insert(it, std::move(chunk));
+				chunk.reset();
+			}
+			else {
+				gameChunks[k].reset();
+				gameChunks.erase(gameChunks.begin() + k);
+			}
+		}
 	}
+	for (int l = desiredChunks.size(); l < gameChunks.size(); l++) {
+		gameChunks[l].reset();
+	}
+	gameChunks.erase(gameChunks.begin() + desiredChunks.size(), gameChunks.end());
+
+
+
 
 
 }
@@ -645,7 +674,30 @@ void Application::createDescriptorSets() {
 void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 
 
-	
+	for (auto& obj : gameChunks) {
+
+		pipeline->bind(commandBuffer);
+		SimplePushConstantData push{};
+
+		//model rotation
+		glm::mat4 model = obj->transformMatrix;
+		//calculate final mesh matrix
+		glm::mat4 mesh_matrix = model;
+
+		push.render_matrix = mesh_matrix;
+
+
+
+		vkCmdPushConstants(
+			commandBuffer,
+			pipelineLayout,
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0,
+			sizeof(SimplePushConstantData),
+			&push);
+		obj->model->bind(commandBuffer);
+		obj->model->draw(commandBuffer);
+	}
 
 	for (auto& obj : gameObjects) {
 
@@ -653,7 +705,7 @@ void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 		SimplePushConstantData push{};
 
 		//model rotation
-		glm::mat4 model = obj->transformMatrix;
+		glm::mat4 model = obj.transformMatrix;
 		//calculate final mesh matrix
 		glm::mat4 mesh_matrix = model;
 
@@ -668,8 +720,8 @@ void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 			0,
 			sizeof(SimplePushConstantData),
 			&push);
-		obj->model->bind(commandBuffer);
-		obj->model->draw(commandBuffer);
+		obj.model->bind(commandBuffer);
+		obj.model->draw(commandBuffer);
 	}
 }
 

@@ -34,9 +34,11 @@ template<> struct std::hash<Model::Vertex> {
 
 
 
-Model::Model(Device& device, const Model::Builder& builder) : device{ device } {
+Model::Model(Device& device, Model::Builder& builder) : device{ device } {
 	createVertexBuffers(builder.vertices);
 	createIndexBuffer(builder.indices);
+	builder.vertices.clear();
+	builder.indices.clear();
 }
 
 
@@ -49,6 +51,10 @@ Model::~Model() {
 
 	vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
 	vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+
+
+
+
 }
 
 void Model::bind(VkCommandBuffer commandBuffer) {
