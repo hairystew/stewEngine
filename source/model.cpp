@@ -162,7 +162,11 @@ void Model::createVertexBuffers(const std::vector<Vertex>& vertices)
 		vertexBuffer, 
 		vertexBufferMemory);
 
+	//probably should use a staging buffer, need to check performance
 	device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+	vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
+	vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
 
 }
 
