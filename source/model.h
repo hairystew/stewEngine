@@ -102,7 +102,7 @@ public:
 
 
 
-
+	bool isEmpty = true;
 	UniformBufferObject ubo;
 	std::vector<VkDescriptorSet> descriptorSets;
 	VkDescriptorSetLayout descriptorSetLayout;

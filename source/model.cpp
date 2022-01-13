@@ -35,23 +35,26 @@ template<> struct std::hash<Model::Vertex> {
 
 
 Model::Model(Device& device, Model::Builder& builder) : device{ device } {
-	createVertexBuffers(builder.vertices);
-	createIndexBuffer(builder.indices);
-	builder.vertices.clear();
-	builder.indices.clear();
+	if (builder.vertices.size() != 0) {
+		createVertexBuffers(builder.vertices);
+		createIndexBuffer(builder.indices);
+		builder.vertices.clear();
+		builder.indices.clear();
+		isEmpty = false;
+	}
 }
 
 
 
 
 Model::~Model() {
+	if (!isEmpty) {
+		vkDestroyBuffer(device.device(), indexBuffer, nullptr);
+		vkFreeMemory(device.device(), indexBufferMemory, nullptr);
 
-	vkDestroyBuffer(device.device(), indexBuffer, nullptr);
-	vkFreeMemory(device.device(), indexBufferMemory, nullptr);
-
-	vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-	vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
-
+		vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
+		vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+	}
 
 
 

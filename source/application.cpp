@@ -259,12 +259,20 @@ void Application::updateGameObjects()
 
 	//these are the chunks that we want to load
 	std::vector<glm::ivec3> desiredChunks;
+	//for (int i = centerChunk.x - (RENDER_SIZE / 4); i < centerChunk.x + (RENDER_SIZE / 4); i++) {
+	//	for (int j = centerChunk.y - (RENDER_SIZE / 4); j < centerChunk.y + (RENDER_SIZE / 4); j++) {
+	//		desiredChunks.push_back(glm::ivec3(i, j, 0));
+	//	}
+	//}
+
 	for (int i = centerChunk.x - (RENDER_SIZE / 4); i < centerChunk.x + (RENDER_SIZE / 4); i++) {
 		for (int j = centerChunk.y - (RENDER_SIZE / 4); j < centerChunk.y + (RENDER_SIZE / 4); j++) {
-			desiredChunks.push_back(glm::ivec3(i, j, 0));
+			for (int k = centerChunk.z - (RENDER_SIZE / 4); k < centerChunk.z + (RENDER_SIZE / 4); k++) {
+				desiredChunks.push_back(glm::ivec3(i, j, k));
+			}
 		}
 	}
-	
+
 	std::sort(desiredChunks.begin(), desiredChunks.end(), [](glm::ivec3& a, glm::ivec3& b) {
 		std::hash<std::string> has;
 		return has(std::to_string(a.x) + std::to_string(a.y) + std::to_string(a.z))
@@ -695,8 +703,10 @@ void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
 			0,
 			sizeof(SimplePushConstantData),
 			&push);
-		obj->model->bind(commandBuffer);
-		obj->model->draw(commandBuffer);
+		if (!obj->model->isEmpty) {
+			obj->model->bind(commandBuffer);
+			obj->model->draw(commandBuffer);
+		}
 	}
 
 	for (auto& obj : gameObjects) {

@@ -2,13 +2,14 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "simplexNoise.h"
 #include "gameobject.h"
 #include "world.h"
 #include "model.h"
 #include "glm/glm.hpp"
 
 #define CHUNK_SIZE 32
-#define RENDER_SIZE 4
+#define RENDER_SIZE 12
 
 class Chunk : public  GameObject
 {
@@ -16,6 +17,7 @@ public:
 
 	Chunk() : GameObject() {
 		gameType = GameChunk;
+		noise = SimplexNoise();
 	}
 	~Chunk() {
 		//vertices.clear();
@@ -25,6 +27,7 @@ public:
 	uint8_t chunkData[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE]{};
 	void createModel(Device& device);
 	glm::ivec3 chunkLoc{};
+	bool isEmpty = false;
 
 	//some wack copy constructor shit
 	Chunk(const Chunk&) = delete;
@@ -37,7 +40,9 @@ private:
 	void loadChunkData(std::ifstream& file);
 	void writeChunkData();
 	void generateChunkData();
+	float getSimplexNoise(glm::vec3 worldPos);
 	void createMesh();
+	SimplexNoise noise;
 	std::vector<Model::Vertex> vertices;
 	const glm::vec3 indi[8] = {
 		glm::vec3(0,0,0), //0

@@ -55,16 +55,21 @@ void Chunk::generateChunkData()
 	for (int i = 0; i < CHUNK_SIZE; i++) {
 		for (int j = 0; j < CHUNK_SIZE; j++) {
 			for (int k = 0; k < CHUNK_SIZE; k++) {
-				if (k > 5) {
-					chunkData[i][j][k] = 0;
-				}
-				else {
-					chunkData[i][j][k] = 1;
-				}
+					 //int val = static_cast<uint8_t>(32 * ((noise.noise((chunkLoc.x + i), (chunkLoc.y + j), (chunkLoc.z + k)) + 1)/2));
+					 //chunkData[i][j][k] = val;
+					double val = noise.noise(((chunkLoc.x * (double)CHUNK_SIZE) + i) / 64., ((chunkLoc.y * (double)CHUNK_SIZE) + j) / 64., ((chunkLoc.z * (double)CHUNK_SIZE) + k) / 64.);
+					chunkData[i][j][k] = (val > 0.3) ? 1 : 0;
 			}
 		}
 	}
+}
 
+float Chunk::getSimplexNoise(glm::vec3 worldPos)
+{
+
+
+
+	return 0.0f;
 }
 
 void Chunk::createMesh()
