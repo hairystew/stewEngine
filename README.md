@@ -1,1 +1,1 @@
-This project was really never intended to be used other than by myself. This was mainly a means to learning graphics programming and working on larger programming projects!
+Stewengine is a very rudamentary graphics engine using C++ and the Vulkan API. This project was really never intended to be used other than by myself. This was mainly a means to learning graphics programming, C++,  and working on larger programming projects!
